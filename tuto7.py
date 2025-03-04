@@ -99,19 +99,20 @@ pdf = PDF()
 # First page:
 pdf.add_page()
 # use the font imported
-pdf.set_font("dejavu-sans", size=12)
-# set H1
-pdf.set_font(None, 'B', size=20)
+# and set style and size for H1
+pdf.set_font("dejavu-sans", "B", size=20)
 pdf.write(text="Header 1")
 # print empty lines
 pdf.ln()
 pdf.ln()
-# set Text
+# reset style and set size for normal Text
 pdf.set_font(None, "", size=12)
 pdf.write(text="this is an example")
+# print empty lines
 pdf.ln()
-# set Text 2
-pdf.set_font(None, "I", size=12)
+pdf.ln()
+# set style for Text 2 to italic
+pdf.set_font(None, "I")
 pdf.write(text="this is the second example")
 
 # create pdf with metadata
@@ -122,5 +123,5 @@ pdf.create_pdf_with_metadata(
     subject="Example for PDFA",
     creator=["John Dow", "Jane Dow"],
     description="this is my description of this file",
-    keywords="Example, Tutorial7"
-    )
+    keywords="Example Tutorial7"
+)
