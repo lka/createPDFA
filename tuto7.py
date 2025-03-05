@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from fpdf import FPDF
 from fpdf.enums import OutputIntentSubType
 from fpdf.output import PDFICCProfileObject
@@ -6,65 +6,22 @@ from fpdf import FPDF_VERSION
 from datetime import datetime, timezone
 import pikepdf
 
+DIR = Path(__file__).parent
+FONT_DIR = DIR / "assets" / "fonts"
+
 
 class PDF(FPDF):
-    """class for my pdf inherited from FPDF
-    """
-    def __init__(self):
-        super().__init__()
-        """
-        import and embed TTF Font to use in text
-        """
-        self.add_font(
-            "dejavu-sans", style="",
-            fname="./assets/Fonts/DejaVuSansCondensed.ttf"
-        )
-        self.add_font(
-            "dejavu-sans",
-            style="b",
-            fname="./assets/Fonts/DejaVuSansCondensed-Bold.ttf",
-        )
-        self.add_font(
-            "dejavu-sans",
-            style="i",
-            fname="./assets/Fonts/DejaVuSansCondensed-Oblique.ttf",
-        )
-        self.add_font(
-            "dejavu-sans",
-            style="bi",
-            fname="./assets/Fonts/DejaVuSansCondensed-BoldOblique.ttf",
-        )
-        # set Output Intents
-        with open(os.path.join("assets", "sRGB2014.icc"), "rb") as\
-                iccp_file:
-            icc_profile = PDFICCProfileObject(
-                contents=iccp_file.read(),
-                n=3,
-                alternate="DeviceRGB"
-            )
-        self.add_output_intent(
-            OutputIntentSubType.PDFA,
-            "sRGB",
-            "IEC 61966-2-1:1999",
-            "http://www.color.org",
-            icc_profile,
-            "sRGB2014 (v2)",
-        )
 
-    def create_pdf_with_metadata(self,
-                                 filename: str,
-                                 language: str = None,
-                                 title: str = None,
-                                 subject: str = None,
-                                 creator: list = None,
-                                 description: str = None,
-                                 keywords: str = None,
-                                 ):
-        # don't set metadata with this
-        # pdf.set_title("Tutorial 7")
-        # pdf.set_author("John Doe")
-        # pdf.set_producer(f"py-pdf/fpdf{FPDF_VERSION}")
-        # except:
+    def create_pdf_with_metadata(
+        self,
+        filename: str,
+        language: str = None,
+        title: str = None,
+        subject: str = None,
+        creator: list = None,
+        description: str = None,
+        keywords: str = None,
+    ):
         if language:
             self.set_lang(language)
         if subject:
@@ -73,18 +30,14 @@ class PDF(FPDF):
         # create pdf
         self.output(filename)
 
-        with pikepdf.open(filename, allow_overwriting_input=True) as pdf:
-            with pdf.open_metadata(set_pikepdf_as_editor=False) as meta:
+        with pikepdf.open(filename, allow_overwriting_input=True) as inner_pdf:
+            with inner_pdf.open_metadata(set_pikepdf_as_editor=False) as meta:
                 if title:
                     meta["dc:title"] = title
-                # meta["dc:language"] = "en-US"
-                #   not compliant to PDFA-3B
                 if creator:
                     meta["dc:creator"] = creator
                 if description:
                     meta["dc:description"] = description
-                # meta["dc:subject"] = "Example for PDFA"
-                #   not compliant to PDFA-3B
                 if keywords:
                     meta["pdf:Keywords"] = keywords
                 meta["pdf:Producer"] = f"py-pdf/fpdf{FPDF_VERSION}"
@@ -92,10 +45,41 @@ class PDF(FPDF):
                 meta["xmp:CreateDate"] = datetime.now(timezone.utc).isoformat()
                 meta["pdfaid:part"] = "3"
                 meta["pdfaid:conformance"] = "B"
-            pdf.save()
+            inner_pdf.save()
 
 
 pdf = PDF()
+
+# import and embed TTF Font to use in text
+pdf.add_font("dejavu-sans", style="", fname=FONT_DIR / "DejaVuSansCondensed.ttf")
+pdf.add_font(
+    "dejavu-sans",
+    style="b",
+    fname=FONT_DIR / "DejaVuSansCondensed-Bold.ttf",
+)
+pdf.add_font(
+    "dejavu-sans",
+    style="i",
+    fname=FONT_DIR / "DejaVuSansCondensed-Oblique.ttf",
+)
+pdf.add_font(
+    "dejavu-sans",
+    style="bi",
+    fname=FONT_DIR / "DejaVuSansCondensed-BoldOblique.ttf",
+)
+# set Output Intents
+with open(DIR / "assets" / "sRGB2014.icc", "rb") as iccp_file:
+    icc_profile = PDFICCProfileObject(
+        contents=iccp_file.read(), n=3, alternate="DeviceRGB"
+    )
+pdf.add_output_intent(
+    OutputIntentSubType.PDFA,
+    "sRGB",
+    "IEC 61966-2-1:1999",
+    "http://www.color.org",
+    icc_profile,
+    "sRGB2014 (v2)",
+)
 # First page:
 pdf.add_page()
 # use the font imported
@@ -123,5 +107,5 @@ pdf.create_pdf_with_metadata(
     subject="Example for PDFA",
     creator=["John Dow", "Jane Dow"],
     description="this is my description of this file",
-    keywords="Example Tutorial7"
+    keywords="Example Tutorial7",
 )

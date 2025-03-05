@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 128
+; E203 whitespace before ':'
+; E221 multiple spaces before operator
+; E241 multiple spaces after ','
+; E251 no spaces around equals
+; E701 multiple statements on one line (colon)
+; E731 assignment of lambdas
+; W503 line break before binary operator
+ignore = E203, E221, E241, E251, E701, E731, W503
